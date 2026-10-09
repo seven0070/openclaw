@@ -24,6 +24,6 @@ test("unapproved, expired and invalid actions cannot execute", async () => {
     const store = new JaneApprovalStore({ directory: dir });
     const action = { id: "mail-1", kind: "send_as_owner", payloadDigest: digestPayload("payload") };
     assert.equal((await store.consume("00000000-0000-0000-0000-000000000000", action)).allowed, false);
-    assert.rejects(() => store.grant({ id: "a", kind: "read_text", payloadDigest: action.payloadDigest }));
+    await assert.rejects(() => store.grant({ id: "a", kind: "read_text", payloadDigest: action.payloadDigest }));
   } finally { await rm(dir, { recursive: true, force: true }); }
 });
