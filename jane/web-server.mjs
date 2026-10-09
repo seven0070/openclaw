@@ -36,7 +36,11 @@ export function createJaneWebServer({ agent, memory, token = randomBytes(32).toS
       res.writeHead(200, { "content-type": "text/html; charset=utf-8", "cache-control": "no-store" });
       return res.end(await readFile(HTML));
     }
-    if (req.method === "GET" && path === "/ui.js") {\n      res.writeHead(200, { "content-type": "text/javascript; charset=utf-8", "cache-control": "no-store" });\n      return res.end(await readFile(new URL("./ui.js", import.meta.url)));\n    }\n    if (!safeEqual(req.headers["x-jane-token"], token)) return json(res, 401, { error: "Unauthorized" });
+    if (req.method === "GET" && path === "/ui.js") {
+      res.writeHead(200, { "content-type": "text/javascript; charset=utf-8", "cache-control": "no-store" });
+      return res.end(await readFile(new URL("./ui.js", import.meta.url)));
+    }
+    if (!safeEqual(req.headers["x-jane-token"], token)) return json(res, 401, { error: "Unauthorized" });
     if (req.method === "GET" && path === "/api/history") return json(res, 200, { messages: memory.messages });
     if (req.method !== "POST" || !["/api/chat", "/api/forget"].includes(path)) return json(res, 404, { error: "Not found" });
     if (busy) return json(res, 409, { error: "Another operation is in progress" });
