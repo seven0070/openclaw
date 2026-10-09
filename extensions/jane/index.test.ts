@@ -11,6 +11,8 @@ describe("Jane native plugin entry", () => {
         context: { agentId?: string },
       ) => unknown;
     }> = [];
+    const methods: string[] = [];
+    const widgets: string[] = [];
     const api = {
       pluginConfig: { agentId: "jane", protectedTools: ["message"], safeTools: ["read"] },
       runtime: {
@@ -26,6 +28,13 @@ describe("Jane native plugin entry", () => {
           context: { agentId?: string },
         ) => unknown;
       }) => policies.push(policy),
+      registerGatewayMethod: (method: string) => methods.push(method),
+      session: {
+        controls: {
+          registerControlUiDescriptor: (descriptor: { id: string }) => widgets.push(descriptor.id),
+        },
+      },
+      on: () => {},
     };
 
     janePlugin.register(api as never);
@@ -33,6 +42,8 @@ describe("Jane native plugin entry", () => {
     expect(registeredTools).toHaveLength(1);
     expect(policies).toHaveLength(1);
     expect(policies[0]?.id).toBe("owner-approval");
+    expect(methods).toEqual(["jane.status", "jane.tasks.list", "jane.audit.list"]);
+    expect(widgets).toEqual(["tasks", "audit-history"]);
     expect(
       policies[0]?.evaluate(
         { toolName: "message", params: { action: "send", to: "owner" } },
@@ -51,6 +62,9 @@ describe("Jane native plugin entry", () => {
       registerTool: (tool: { create?: (context: { agentId?: string }) => unknown }) =>
         registeredTools.push(tool),
       registerTrustedToolPolicy: () => {},
+      registerGatewayMethod: () => {},
+      session: { controls: { registerControlUiDescriptor: () => {} } },
+      on: () => {},
     };
 
     janePlugin.register(api as never);
@@ -78,6 +92,9 @@ describe("Jane native plugin entry", () => {
           context: { agentId?: string },
         ) => unknown;
       }) => policies.push(policy.evaluate),
+      registerGatewayMethod: () => {},
+      session: { controls: { registerControlUiDescriptor: () => {} } },
+      on: () => {},
     };
 
     janePlugin.register(api as never);

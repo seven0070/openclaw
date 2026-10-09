@@ -13,6 +13,19 @@ local-only development preview, not an approval surface.
    ollama pull qwen3:4b
    ```
 
+   For a reproducible prerequisite check on a supported desktop OS, run one of
+   the scripts from the checkout. They make no configuration change by default;
+   `--apply` / `-Apply` downloads the model and then invokes the existing
+   confirmation-based setup flow:
+
+   ```sh
+   bash jane/install-macos.sh [--apply]
+   ```
+
+   ```powershell
+   powershell -ExecutionPolicy Bypass -File .\jane\install-windows.ps1 [-Apply]
+   ```
+
 2. Install and onboard OpenClaw using its root documentation. Run a non-mutating
    readiness check before changing settings:
 
@@ -102,4 +115,6 @@ Hardware and owner-device checks are separate from these automated tests:
 - sandbox escape, symlink, and untrusted-tool-output tests on the target OS.
 
 Record the device, OS, model quantization, OpenClaw version, and results in the
-release evidence before enabling identity-bearing workflows.
+release evidence before enabling identity-bearing workflows. Use the explicit
+[hardware checklist](HARDWARE-VALIDATION.md); none of those checks are implied
+by this checkout's CI result.

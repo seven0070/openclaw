@@ -26,6 +26,8 @@ Jane is **not yet ready for a production release**. Do not claim it is equivalen
 ## Product
 
 - Desktop chat, status, approvals, logs, settings, model selection.
+- Jane dashboard bindings for task and audit-history reads; task mutation remains
+  on the scoped Jane tool and native approvals remain on the host surface.
 - Installers and updates, restart recovery, onboarding, and diagnostics.
 - Native voice mode, background tasks, and safe self-improvement proposals with human review.
 

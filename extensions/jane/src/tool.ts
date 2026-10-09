@@ -53,7 +53,7 @@ export function createJaneTaskTool(
       const input = raw as TaskInput;
       if (!store.withCurrent) {
         return {
-          ...textResult("Jane task storage requires a current OpenClaw runtime."),
+          ...textResult("Jane task storage requires a current OpenClaw runtime.", {}),
           isError: true,
         };
       }
@@ -82,7 +82,7 @@ export function createJaneTaskTool(
         return textResult(`Task ${task.status}.`, { task });
       } catch (error) {
         return {
-          ...textResult(error instanceof Error ? error.message : "Jane task operation failed."),
+          ...textResult(error instanceof Error ? error.message : "Jane task operation failed.", {}),
           isError: true,
         };
       }

@@ -3,6 +3,7 @@
   "name": "Jane",
   "description": "Local-assistant task management and action-specific owner approvals.",
   "categories": ["productivity"],
+  "uiCapabilities": ["widget"],
   "enabledByDefault": false,
   "activation": {
     "onStartup": true,
@@ -11,6 +12,25 @@
   "contracts": {
     "tools": ["jane_tasks"],
     "trustedToolPolicies": ["owner-approval"]
+  },
+  "dashboard": {
+    "dataBindings": [
+      {
+        "id": "status",
+        "method": "jane.status",
+        "description": "Read Jane's native approval, task, and audit capabilities."
+      },
+      {
+        "id": "tasks.list",
+        "method": "jane.tasks.list",
+        "description": "List persistent Jane tasks."
+      },
+      {
+        "id": "audit.list",
+        "method": "jane.audit.list",
+        "description": "List redacted Jane activity receipts."
+      }
+    ]
   },
   "toolMetadata": {
     "jane_tasks": {

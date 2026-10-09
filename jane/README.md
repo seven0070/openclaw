@@ -17,6 +17,8 @@ Jane is a user-controlled AI extension built on the OpenClaw foundation. Initial
 - A dedicated OpenClaw Jane agent, using the standard Control UI/desktop client
   for chat, settings, memory, tool activity, and authenticated approvals.
 - SQLite-backed persistent task metadata through the optional `jane_tasks` tool.
+- Native dashboard bindings for Jane task lists and redacted activity receipts;
+  task mutations remain scoped to the Jane tool rather than a dashboard API.
 - One-time approval at the native pre-execution boundary for every configured
   owner-sensitive tool. Approvals bind to the exact displayed canonical
   parameters; unsafe-to-display requests are denied.
