@@ -21,6 +21,6 @@ test("Jane refuses unsupported model tool requests", async () => {
   try {
     const client = { chat: async () => '{"tool":"run_shell","path":"."}' };
     const agent = new JaneAgent({ client, gateway: new JaneToolGateway({ workspace: dir }) });
-    assert.equal(await agent.respond([], "run a command"), '{"tool":"run_shell","path":"."}');
+    assert.equal(await agent.respond([], "run a command"), "Jane cannot execute that tool.");
   } finally { await rm(dir, { recursive: true, force: true }); }
 });
