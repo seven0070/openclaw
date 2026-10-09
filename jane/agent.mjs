@@ -31,7 +31,7 @@ export class JaneAgent {
     for (let i = 0; i <= this.maxTools; i++) {
       const answer = await this.client.chat(messages, { system: SYSTEM });
       const tool = parseTool(answer);
-      if (!tool) return answer;
+      if (!tool) return answer.trim().startsWith('{"tool"') ? "Jane cannot execute that tool." : answer;
       if (i === this.maxTools) return "Jane reached the tool-use limit for this turn.";
       let result;
       try {
