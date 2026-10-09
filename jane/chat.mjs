@@ -4,9 +4,14 @@ import readline from "node:readline/promises";
 import { stdin, stdout } from "node:process";
 import { JaneOllamaClient } from "./ollama-client.mjs";
 import { JaneMemory } from "./memory.mjs";
+import { JaneAgent } from "./agent.mjs";
+import { JaneToolGateway } from "./tool-gateway.mjs";
+import { resolve } from "node:path";
 
 const client = new JaneOllamaClient();
 const memory = new JaneMemory();
+const workspace = resolve(process.env.JANE_WORKSPACE || process.cwd());
+const agent = new JaneAgent({ client, gateway: new JaneToolGateway({ workspace }) });
 await memory.load();
 const rl = readline.createInterface({ input: stdin, output: stdout });
 console.log("Jane (local Qwen3-4B). Type /exit to quit, /forget to clear local chat history.");
@@ -22,7 +27,7 @@ try {
     if (!prompt) continue;
     if (prompt.length > 12000) { console.error("Jane> Message too long."); continue; }
     try {
-      const answer = await client.chat([...memory.messages, { role: "user", content: prompt }]);
+      const answer = await agent.respond(memory.messages, prompt);
       await memory.appendTurn(prompt, answer);
       console.log("Jane> " + answer);
     } catch (error) {
