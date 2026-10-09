@@ -3,6 +3,7 @@
 Jane is a user-controlled AI extension built on the OpenClaw foundation. Initial target: local Qwen3-4B via Ollama on an 8 GB VRAM PC.
 
 ## Principles
+
 - Jane is an extension of the owner, not a replacement for their identity.
 - Identity-bearing actions require explicit, action-specific approval, with deny as the default.
 - Never let agent-generated code or instructions change the approval policy.
@@ -10,12 +11,19 @@ Jane is a user-controlled AI extension built on the OpenClaw foundation. Initial
 - Target 90% of routine digital work as a measurable aspiration, not a promised capability.
 - Self-improvement means sandboxed proposals, tests, human review, and rollback, not unreviewed production self-modification.
 
-## First milestone
-1. Install Ollama and run `ollama pull qwen3:4b`.
-2. Configure OpenClaw's Ollama provider using the local-only model. Verify actual model/tool compatibility before enabling autonomous tasks.
-3. Integrate an approval gate into **all** identity-bearing execution paths (email, social posts, authentication, signatures, purchases, external disclosure). The policy module below is a starting point, not an enforcement integration.
-4. Add persistent memory with opt-in retention and deletion, task queue, audit log, and evaluation suite.
-5. Add a Jane-branded interface and controlled skills-development workflow.
+## Current native capability
+
+- Local Qwen3-4B model selection through the OpenClaw Ollama provider.
+- A dedicated OpenClaw Jane agent, using the standard Control UI/desktop client
+  for chat, settings, memory, tool activity, and authenticated approvals.
+- SQLite-backed persistent task metadata through the optional `jane_tasks` tool.
+- One-time approval at the native pre-execution boundary for every configured
+  owner-sensitive tool. Approvals bind to the exact displayed canonical
+  parameters; unsafe-to-display requests are denied.
+- Controlled coding through OpenClaw's existing sandbox, tool policy, test, and
+  VCS review/rollback workflow.
 
 ## Status
-Scaffolding only. No Jane runtime, enforced identity gateway, or working model integration is claimed yet.
+
+See [OPENCLAW-INTEGRATION.md](OPENCLAW-INTEGRATION.md) for setup, security
+limits, local-device verification, and recovery guidance.

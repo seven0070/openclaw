@@ -1,16 +1,63 @@
-# Jane → native OpenClaw integration (opt-in)
+# Jane → native OpenClaw integration
 
-OpenClaw already supports the **native Ollama API**. Jane does not need to replace OpenClaw's gateway or add an incompatible OpenAI-compatible /v1 shim.
+Jane uses OpenClaw's native Ollama provider and agent runtime. It does not add an
+OpenAI-compatible proxy or a second runtime. The bundled `extensions/jane`
+plugin provides persistent tasks and a native pre-execution owner-approval policy.
 
 ## On your own PC
-1. Install Ollama, then `ollama pull qwen3:4b`.
-2. Install/onboard OpenClaw following the repository's root README.
-3. Run `node jane/setup-openclaw.mjs` and type `YES` only if you want to change OpenClaw's current primary model. This runs `openclaw models set ollama/qwen3:4b`.
-4. Run `openclaw gateway status`, `openclaw models list --provider ollama`, and `openclaw dashboard`. Test a real completion.
-5. If model discovery fails, follow `docs/providers/ollama/setup.md` and `docs/providers/ollama/configuration.md`; a model may need to be loaded and support tool use and sufficient context to qualify.
 
-## Security
-The native OpenClaw gateway has its own tools and permissions. **Jane's standalone identity-policy and read-only tool gateway do not constrain OpenClaw's native tools.** Do not enable email, purchases, authentication, social posting, or unrestricted shell/browser actions until an identity-approval enforcement layer has been integrated and verified at the native execution boundary. Use the native OpenClaw sandbox/tool policy for now.
+1. Install Ollama, then run `ollama pull qwen3:4b`.
+2. Install and onboard OpenClaw following the repository root README.
+3. Run `node jane/setup-openclaw.mjs` and type `YES` if you want to select
+   `ollama/qwen3:4b` as the current primary model.
+4. Create a dedicated agent and workspace, for example:
+
+   ```sh
+   openclaw agents add jane --workspace ~/.openclaw/workspace-jane --model ollama/qwen3:4b --non-interactive
+   ```
+
+5. Enable the Jane plugin in your OpenClaw configuration, set
+   `plugins.entries.jane.config.agentId` to `jane`, and allow the optional
+   `jane_tasks` tool for that agent. Keep all external-action tools disabled
+   until their owner-approval routing is configured.
+6. Configure `approvals.plugin` to use a paired and authenticated Control UI,
+   desktop client, or channel-native reviewer allowlist. Do not use a generic
+   unauthenticated target as an approval surface.
+7. Start the Gateway and open `openclaw dashboard`. Select Jane for chat,
+   Settings, Memory, task/tool activity, and approval review.
+
+## Approval boundary
+
+`extensions/jane` intercepts configured protected tools after selection and
+before execution. It asks OpenClaw for one-time authenticated approval over the
+exact canonical parameter payload. While approval is pending, OpenClaw freezes
+the parameter snapshot; a subsequent hook cannot replace the approved payload.
+Only `allow-once` or `deny` is offered. Secret-bearing, malformed, deeply
+nested, or too-large parameter sets are denied instead of being truncated.
+
+The default protected list is `message`, `browser`, `exec`, `apply_patch`,
+`write`, `cron`, `gateway`, `computer`, `nodes`, and `sessions`. Only `read`
+and `jane_tasks` are safe by default; every other tool is denied until it is
+explicitly classified as protected or safe. Plugin approvals do not replace
+OpenClaw's own sandbox, exec approval, channel access, or tool-allow policies;
+those must remain enabled.
+
+## Voice, tasks, and coding
+
+The Control UI/desktop clients provide chat, settings, memory, tool activity,
+and native approval surfaces. Use a supported local speech provider or the
+platform microphone flow for voice; Qwen3-4B itself is text-only. Jane's task
+tool persists task metadata through OpenClaw SQLite and survives restart.
+
+For autonomous coding, use a dedicated Jane workspace with OpenClaw sandboxing
+enabled. Require one-time approval for `exec` and `apply_patch`, run tests in
+the sandbox, review the diff, and commit only after review. Recovery is the
+normal OpenClaw service recovery plus VCS rollback to the last reviewed commit.
+Jane must never edit its own approval policy as an autonomous task.
 
 ## Verification status
-This repository includes a configuration helper and unit test. It has not been executed on the owner's PC; the Ollama model's live behavior, GPU utilization, and OpenClaw agent compatibility are not yet verified.
+
+The native plugin has focused approval and SQLite-task tests. It is not a claim
+that this cloud runner has a local Ollama daemon, GPU, microphone, a paired
+owner device, or a supported desktop OS. Complete the live local checks in
+`jane/RELEASE-CHECKLIST.md` before relying on external actions.

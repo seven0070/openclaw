@@ -1,0 +1,68 @@
+{
+  "id": "jane",
+  "name": "Jane",
+  "description": "Local-assistant task management and action-specific owner approvals.",
+  "categories": ["productivity"],
+  "enabledByDefault": false,
+  "activation": {
+    "onStartup": true,
+    "onConfigPaths": ["plugins.entries.jane.config"]
+  },
+  "contracts": {
+    "tools": ["jane_tasks"]
+  },
+  "toolMetadata": {
+    "jane_tasks": {
+      "optional": true
+    }
+  },
+  "configSchema": {
+    "type": "object",
+    "additionalProperties": false,
+    "properties": {
+      "agentId": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 128,
+        "default": "jane"
+      },
+      "protectedTools": {
+        "type": "array",
+        "items": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "uniqueItems": true,
+        "default": [
+          "message",
+          "browser",
+          "exec",
+          "apply_patch",
+          "write",
+          "cron",
+          "gateway",
+          "computer",
+          "nodes",
+          "sessions"
+        ]
+      },
+      "safeTools": {
+        "type": "array",
+        "items": { "type": "string", "minLength": 1, "maxLength": 128 },
+        "uniqueItems": true,
+        "default": ["read", "jane_tasks"]
+      }
+    }
+  },
+  "uiHints": {
+    "agentId": {
+      "label": "Jane agent ID",
+      "help": "Only this agent receives Jane's approval policy."
+    },
+    "protectedTools": {
+      "label": "Tools requiring one-time owner approval",
+      "help": "Every matching call must display exact parameters and receive a fresh authenticated approval."
+    },
+    "safeTools": {
+      "label": "Read-only tools Jane may use without approval",
+      "help": "All tools outside this list and the protected list are denied."
+    }
+  }
+}
