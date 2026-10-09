@@ -2,8 +2,8 @@
  * Approval grants must originate from trusted owner UI, NEVER from model output.
  */
 import { createHash, randomUUID } from "node:crypto";
-import { mkdir, readFile, writeFile, rename, open, unlink } from "node:fs/promises";
-import { dirname, join, resolve } from "node:path";
+import { mkdir, readFile, writeFile, rename, unlink } from "node:fs/promises";
+import { join, resolve } from "node:path";
 import { evaluateIdentityAction, requiresIdentityApproval } from "./identity-policy.mjs";
 
 export function digestPayload(payload) {
@@ -23,12 +23,14 @@ export class JaneApprovalStore {
     if (!requiresIdentityApproval(action)) throw new Error("Only identity actions require approval");
     if (!action || typeof action.id !== "string" || !action.id ||
       typeof action.payloadDigest !== "string" || !/^[a-f0-9]{64}$/.test(action.payloadDigest) ||
+      typeof action.target !== "string" || !action.target.trim() ||
+      !["send_as_owner", "publish_as_owner", "sign_as_owner", "authenticate_as_owner", "purchase_as_owner", "disclose_personal_data"].includes(action.kind) ||
       !Number.isInteger(ttlMs) || ttlMs < 1000 || ttlMs > 300000) {
       throw new Error("Invalid approval request");
     }
     await mkdir(this.directory, { recursive: true, mode: 0o700 });
     const id = randomUUID();
-    const record = { granted: true, actionId: action.id, payloadDigest: action.payloadDigest, expiresAt: Date.now() + ttlMs, used: false };
+    const record = { granted: true, actionId: action.id, kind: action.kind, target: action.target, payloadDigest: action.payloadDigest, expiresAt: Date.now() + ttlMs, used: false };
     await writeFile(this.path(id), JSON.stringify(record), { flag: "wx", mode: 0o600 });
     return id;
   }
@@ -45,6 +47,7 @@ export class JaneApprovalStore {
     }
     try {
       const record = JSON.parse(await readFile(claimed, "utf8"));
+      if (record.kind !== action?.kind || record.target !== action?.target) return { allowed: false, reason: "action_details_mismatch" };
       return evaluateIdentityAction(action, record);
     } finally {
       await unlink(claimed).catch(() => {});
