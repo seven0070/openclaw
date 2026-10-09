@@ -1,0 +1,21 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Jane — Local AI</title>
+<style>
+:root{color-scheme:dark;font:16px system-ui;background:#0b1020;color:#e8edfa}
+*{box-sizing:border-box}body{margin:0;display:grid;place-items:center;min-height:100vh}
+main{width:min(800px,100%);height:100dvh;display:flex;flex-direction:column;padding:24px;gap:16px}
+header{display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #34405b;padding-bottom:12px}
+h1{font-size:1.5rem;margin:0}small{color:#9ca9c4}#chat{flex:1;overflow:auto;display:flex;flex-direction:column;gap:12px}
+.msg{max-width:90%;white-space:pre-wrap;overflow-wrap:anywhere;padding:14px;border-radius:14px;background:#1c2842}
+.msg.user{align-self:flex-end;background:#264b76}.msg.assistant{align-self:flex-start}
+form{display:flex;gap:8px}textarea{flex:1;resize:vertical;min-height:60px;max-height:160px;background:#17223b;color:inherit;border:1px solid #405477;border-radius:12px;padding:12px;font:inherit}
+button{background:#547eea;border:0;border-radius:10px;padding:10px 18px;color:white;font:inherit;cursor:pointer}button:disabled{opacity:.5}
+#status{min-height:1.4em;color:#b6c6e6}button.secondary{background:#273650}
+</style></head>
+<body><main>
+<header><div><h1>Jane</h1><small>Local Qwen3-4B · Read-only workspace tools</small></div><button id="forget" class="secondary" type="button">Forget chat</button></header>
+<div id="chat" role="log" aria-live="polite"></div><div id="status" role="status"></div>
+<form id="form"><textarea id="prompt" aria-label="Message Jane" placeholder="Ask Jane something…" required maxlength="12000"></textarea><button id="send" type="submit">Send</button></form>
+</main>
+<script type="module" src="/ui.js"></script></body></html>
