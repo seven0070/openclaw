@@ -1,0 +1,28 @@
+name: Jane unit tests
+on:
+  pull_request:
+    paths:
+      - "jane/**"
+      - ".github/workflows/jane-tests.yml"
+  push:
+    branches:
+      - feature/jane-digital-extension
+    paths:
+      - "jane/**"
+      - ".github/workflows/jane-tests.yml"
+permissions:
+  contents: read
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+      - name: Check syntax
+        run: |
+          for file in jane/*.mjs; do node --check "$file"; done
+      - name: Run Jane unit tests
+        run: node --test jane/*.test.mjs
