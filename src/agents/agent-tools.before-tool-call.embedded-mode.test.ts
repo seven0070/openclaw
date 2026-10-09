@@ -358,6 +358,34 @@ describe("runBeforeToolCallHook — embedded mode approvals", () => {
     expect(hookParams.toolCallId).toBe("call-policy-params");
     expect(typeof hookContext).toBe("object");
   });
+
+  it("blocks a later hook from replacing parameters after trusted owner approval", async () => {
+    const broker = embeddedBroker();
+    trustedPolicy(approvalResult({ title: "Trusted approval" }));
+    runBeforeToolCallMock.mockResolvedValue({ params: { command: "unreviewed" } });
+
+    const resultPromise = runBeforeToolCallHook({
+      toolName: "bash",
+      params: { command: "reviewed" },
+      toolCallId: "trusted-approval-mutation",
+      ctx: { agentId: "jane", sessionKey: "agent:jane:main" },
+    });
+    await vi.waitFor(() => {
+      expect(broker.listPending()).toHaveLength(1);
+    });
+    const approval = expectDefined(
+      broker.listPending()[0],
+      "broker.listPending()[0] test invariant",
+    );
+    expect(broker.resolve(approval.id, "allow-once")).toBe(true);
+
+    await expect(resultPromise).resolves.toMatchObject({
+      blocked: true,
+      reason:
+        "Tool call blocked because a later hook changed parameters after trusted owner approval.",
+      params: { command: "reviewed" },
+    });
+  });
 });
 
 describe("before_tool_call approval snapshots", () => {

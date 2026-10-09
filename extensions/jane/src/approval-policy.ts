@@ -3,6 +3,33 @@ import { createHash } from "node:crypto";
 const MAX_EXACT_PARAMETERS = 260;
 const SECRET_KEY = /(?:api[_-]?key|authorization|cookie|credential|password|secret|token)/i;
 
+/**
+ * These names are part of Jane's security contract. Configuration may add
+ * further protected tools, but it must never downgrade one of these into an
+ * unreviewed action.
+ */
+export const JANE_REQUIRED_APPROVAL_TOOLS = [
+  "message",
+  "browser",
+  "exec",
+  "apply_patch",
+  "write",
+  "cron",
+  "gateway",
+  "computer",
+  "nodes",
+  "sessions",
+] as const;
+
+/** Only these non-mutating Jane capabilities can be configured as safe. */
+export const JANE_SAFE_TOOLS = ["read", "jane_tasks"] as const;
+const JANE_REQUIRED_APPROVAL_TOOL_SET = new Set<string>(JANE_REQUIRED_APPROVAL_TOOLS);
+const JANE_SAFE_TOOL_SET = new Set<string>(JANE_SAFE_TOOLS);
+
+export function isJaneSafeTool(toolName: string): boolean {
+  return JANE_SAFE_TOOL_SET.has(toolName);
+}
+
 export type JaneConfig = {
   agentId: string;
   protectedTools: readonly string[];
@@ -57,6 +84,25 @@ function targetFor(params: Record<string, unknown>): string {
   return "the requested action";
 }
 
+function changesJaneSafetyBoundary(value: unknown): boolean {
+  if (typeof value === "string") {
+    const normalized = value.replaceAll("\\", "/").toLowerCase();
+    return (
+      normalized.includes("extensions/jane/") ||
+      normalized.includes("plugins.entries.jane") ||
+      /(?:^|\/)openclaw\.json(?:$|[^a-z0-9_-])/.test(normalized)
+    );
+  }
+  if (Array.isArray(value)) {
+    return value.some(changesJaneSafetyBoundary);
+  }
+  return (
+    Boolean(value) &&
+    typeof value === "object" &&
+    Object.values(value as Record<string, unknown>).some(changesJaneSafetyBoundary)
+  );
+}
+
 /**
  * Create a one-shot approval only for a fully rendered, immutable parameter
  * snapshot. The OpenClaw runtime freezes that snapshot before the approval is
@@ -71,10 +117,13 @@ export function janeApprovalForToolCall(params: {
   if (params.agentId !== params.config.agentId) {
     return undefined;
   }
-  if (params.config.safeTools.includes(params.toolName)) {
-    return undefined;
-  }
-  if (!params.config.protectedTools.includes(params.toolName)) {
+  const requiresApproval =
+    JANE_REQUIRED_APPROVAL_TOOL_SET.has(params.toolName) ||
+    params.config.protectedTools.includes(params.toolName);
+  if (!requiresApproval) {
+    if (isJaneSafeTool(params.toolName) && params.config.safeTools.includes(params.toolName)) {
+      return undefined;
+    }
     return {
       block: true,
       blockReason:
@@ -82,7 +131,18 @@ export function janeApprovalForToolCall(params: {
     };
   }
   try {
-    const canonical = JSON.stringify(canonicalize(params.toolParams));
+    const reviewableParams = canonicalize(params.toolParams);
+    if (
+      (params.toolName === "apply_patch" || params.toolName === "write") &&
+      changesJaneSafetyBoundary(reviewableParams)
+    ) {
+      return {
+        block: true,
+        blockReason:
+          "Jane cannot change its own approval policy or OpenClaw configuration. Make and review that change outside Jane's autonomous runtime.",
+      };
+    }
+    const canonical = JSON.stringify(reviewableParams);
     if (canonical.length > MAX_EXACT_PARAMETERS) {
       return {
         block: true,
@@ -95,7 +155,7 @@ export function janeApprovalForToolCall(params: {
       requireApproval: {
         title: `Jane: approve ${params.toolName}`,
         description: [
-          `Target: ${targetFor(canonicalize(params.toolParams) as Record<string, unknown>)}`,
+          `Target: ${targetFor(reviewableParams as Record<string, unknown>)}`,
           `Exact parameters: ${canonical}`,
           `SHA-256: ${digest}`,
         ].join("\n"),

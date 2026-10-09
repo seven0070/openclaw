@@ -28,17 +28,20 @@ plugin provides persistent tasks and a native pre-execution owner-approval polic
 
 ## Approval boundary
 
-`extensions/jane` intercepts configured protected tools after selection and
-before execution. It asks OpenClaw for one-time authenticated approval over the
-exact canonical parameter payload. While approval is pending, OpenClaw freezes
-the parameter snapshot; a subsequent hook cannot replace the approved payload.
+`extensions/jane` registers a bundled trusted tool policy, which runs before
+ordinary tool hooks and before native execution, including Codex native
+`PreToolUse` calls. It asks OpenClaw for one-time authenticated approval over
+the exact canonical parameter payload. While approval is pending, OpenClaw
+freezes the parameter snapshot; if a later ordinary hook attempts to change it
+after trusted consent, the runtime vetoes the tool call.
 Only `allow-once` or `deny` is offered. Secret-bearing, malformed, deeply
 nested, or too-large parameter sets are denied instead of being truncated.
 
 The default protected list is `message`, `browser`, `exec`, `apply_patch`,
 `write`, `cron`, `gateway`, `computer`, `nodes`, and `sessions`. Only `read`
 and `jane_tasks` are safe by default; every other tool is denied until it is
-explicitly classified as protected or safe. Plugin approvals do not replace
+explicitly classified as protected or safe. The built-in sensitive list cannot
+be downgraded to safe by configuration. Plugin approvals do not replace
 OpenClaw's own sandbox, exec approval, channel access, or tool-allow policies;
 those must remain enabled.
 
@@ -53,7 +56,8 @@ For autonomous coding, use a dedicated Jane workspace with OpenClaw sandboxing
 enabled. Require one-time approval for `exec` and `apply_patch`, run tests in
 the sandbox, review the diff, and commit only after review. Recovery is the
 normal OpenClaw service recovery plus VCS rollback to the last reviewed commit.
-Jane must never edit its own approval policy as an autonomous task.
+Jane blocks tool calls that attempt to edit its own extension or OpenClaw
+configuration; make those changes outside Jane's autonomous runtime.
 
 ## Verification status
 
@@ -61,3 +65,6 @@ The native plugin has focused approval and SQLite-task tests. It is not a claim
 that this cloud runner has a local Ollama daemon, GPU, microphone, a paired
 owner device, or a supported desktop OS. Complete the live local checks in
 `jane/RELEASE-CHECKLIST.md` before relying on external actions.
+
+For installation, startup, recovery, update, and hardware-test procedures, see
+[OPERATIONS.md](OPERATIONS.md).

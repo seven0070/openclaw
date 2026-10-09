@@ -3,11 +3,13 @@
 This is a locally hosted **browser interface**, not yet a packaged desktop application or production-ready assistant.
 
 ## Prerequisites
+
 - Node.js 22+
 - Ollama installed and running on the same computer
 - Qwen3-4B pulled with `ollama pull qwen3:4b`
 
 ## Start
+
 From the root of the OpenClaw checkout:
 
 ```sh
@@ -23,5 +25,11 @@ The local chat saves its conversation to `~/.jane/conversation.json`. Use **Forg
 
 **Security:** This interface has no send/post/authenticate tools. It does not enforce identity approvals on native OpenClaw tools, and does not claim to. The local token is a basic defense against other browser pages, not strong OS-level authentication.
 
-## Remaining product work
-Native OpenClaw integration, secure approvals at every execution boundary, signed installers, automatic updates, voice, task scheduling, self-development, and full PC testing.
+## Product boundary
+
+This preview remains intentionally separate from the native Jane product. Use
+the authenticated OpenClaw Control UI/desktop clients for tasks, memory, tool
+activity, voice/Talk, and owner approvals. The remaining release gates—signed
+installers, automatic updates, and full PC/device verification—are tracked in
+[OPERATIONS.md](OPERATIONS.md) and
+[RELEASE-CHECKLIST.md](RELEASE-CHECKLIST.md).

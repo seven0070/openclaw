@@ -5,6 +5,7 @@
  * trusted policies, approvals, normal hooks, and final owner approval must
  * remain in this sequence.
  */
+import { isDeepStrictEqual } from "node:util";
 import type { ToolLoopWarning } from "@openclaw/agent-core";
 import { freezeDiagnosticTraceContext } from "../infra/diagnostic-trace-context.js";
 import { getGlobalHookRunnerRegistry } from "../plugins/hook-runner-global-state.js";
@@ -359,6 +360,30 @@ export async function runBeforeToolCallHook(args: {
           reason: hookResult.blockReason || "Tool call blocked by plugin hook",
           params: policyAdjustedParams,
         };
+      }
+
+      // A trusted policy can bind an authenticated owner decision to the exact
+      // parameters it reviewed. Ordinary hooks run later and therefore must
+      // not be able to replace those parameters (including by attaching their
+      // own approval) after that decision. Allowing that would turn a trusted
+      // approval into an approval for a different execution payload.
+      if (trustedApprovalResolution && hookResult?.params) {
+        const postApprovalParams = reconcileCodeModeExecBeforeHookParams({
+          owner: { toolKind: args.toolKind },
+          originalParams: policyAdjustedParams,
+          hookParams: policyAdjustedParams,
+          adjustedParams: mergeParamsWithApprovalOverrides(policyAdjustedParams, hookResult.params),
+        });
+        if (!isDeepStrictEqual(postApprovalParams, policyAdjustedParams)) {
+          return {
+            blocked: true,
+            kind: "veto",
+            deniedReason: "plugin-before-tool-call",
+            reason:
+              "Tool call blocked because a later hook changed parameters after trusted owner approval.",
+            params: policyAdjustedParams,
+          };
+        }
       }
 
       if (hookResult?.requireApproval) {

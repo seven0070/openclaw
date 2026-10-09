@@ -25,5 +25,6 @@ Jane is a user-controlled AI extension built on the OpenClaw foundation. Initial
 
 ## Status
 
-See [OPENCLAW-INTEGRATION.md](OPENCLAW-INTEGRATION.md) for setup, security
-limits, local-device verification, and recovery guidance.
+See [OPENCLAW-INTEGRATION.md](OPENCLAW-INTEGRATION.md) and the
+[operations guide](OPERATIONS.md) for setup, security limits, recovery,
+updates, and local-device verification.

@@ -50,6 +50,36 @@ describe("Jane native approval policy", () => {
     ).toMatchObject({ block: true });
   });
 
+  it("does not let configuration mark an inherent sensitive tool as safe", () => {
+    expect(
+      janeApprovalForToolCall({
+        config: { agentId: "jane", protectedTools: [], safeTools: ["message", "read"] },
+        agentId: "jane",
+        toolName: "message",
+        toolParams: { action: "send", to: "owner@example.test" },
+      }),
+    ).toMatchObject({ requireApproval: { allowedDecisions: ["allow-once", "deny"] } });
+  });
+
+  it("refuses autonomous changes to its approval boundary even when approved tools are enabled", () => {
+    expect(
+      janeApprovalForToolCall({
+        config,
+        agentId: "jane",
+        toolName: "apply_patch",
+        toolParams: { patch: "*** Update File: extensions/jane/src/approval-policy.ts" },
+      }),
+    ).toMatchObject({ block: true });
+    expect(
+      janeApprovalForToolCall({
+        config,
+        agentId: "jane",
+        toolName: "write",
+        toolParams: { path: "/home/owner/.openclaw/openclaw.json", content: "{}" },
+      }),
+    ).toMatchObject({ block: true });
+  });
+
   it("fails closed for secret-bearing or truncated action details", () => {
     expect(
       janeApprovalForToolCall({

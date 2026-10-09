@@ -9,7 +9,8 @@
     "onConfigPaths": ["plugins.entries.jane.config"]
   },
   "contracts": {
-    "tools": ["jane_tasks"]
+    "tools": ["jane_tasks"],
+    "trustedToolPolicies": ["owner-approval"]
   },
   "toolMetadata": {
     "jane_tasks": {
